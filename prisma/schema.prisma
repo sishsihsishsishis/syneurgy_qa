@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  // use env var
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model tbl_chat_response {
+  id          Int    @id @default(autoincrement())
+  category    String
+  question_id String @unique
+  question    String
+  answer      String
+  meeting_id  String
+}
