@@ -46,10 +46,13 @@ async function processMeetingData(meetingId, meetingData) {
 }
 
 app.get('/', (req, res) => {
-  res.send('<h1>Test API</h1> <h4>Message: Success</h4> <p>Version 1.1</p>');
+  res.send('<h1>Test API</h1> <h4>Message: Success</h4> <p>Version 1.2</p>');
 })
 
 app.post("/fetch-analysis/", async (req, res) => {
+  // fix cors error
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   const meeting_id = req.body.meeting_id;
 
   if (await isMeetingProcessed(meeting_id)) {
@@ -163,6 +166,9 @@ app.post("/fetch-analysis/", async (req, res) => {
 });
 
 app.get("/get-analysis/:meetingId", async (req, res) => {
+  // fix cors error
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
   const meetingId = req.params.meetingId;
 
   try {
