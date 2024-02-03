@@ -16,3 +16,14 @@ model tbl_chat_response {
   answer      String
   meeting_id  String
 }
+
+
+model match_entity {
+  id          Int       @id @default(autoincrement())
+  user_id      Int?
+  username    String?
+  speaker     String?
+  meeting_id   Int?
+  created_date DateTime  @default(now())
+  updated_date DateTime? @updatedAt
+}

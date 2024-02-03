@@ -45,15 +45,43 @@ async function processMeetingData(meetingId, meetingData) {
   }
 }
 
-app.get('/', (req, res) => {
-  res.send('<h1>Test API</h1> <h4>Message: Success</h4> <p>Version 1.2</p>');
-})
+app.get("/", (req, res) => {
+  res.send("<h1>Test API</h1> <h4>Message: Success</h4> <p>Version 1.2</p>");
+});
 
 app.post("/fetch-analysis/", async (req, res) => {
   // fix cors error
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const meeting_id = req.body.meeting_id;
+
+  const isMeetingDoneForMatch = await isMeetingProcessedForMatch(parseInt(meeting_id));
+
+  if (!isMeetingDoneForMatch) {
+    const match_result_speaker = await fetch(
+      `http://18.144.11.243:8080/match-result/${meeting_id}`
+    ).then((res) => res.json());
+    if (match_result_speaker.data && match_result_speaker.data.match_result) {
+      const values = Object.entries(match_result_speaker.data.match_result).map(
+        ([username, speakers]) => ({
+          username,
+          speaker: speakers[0],
+        })
+      );
+    
+      values.forEach(async (value) => {
+        await prisma.match_entity.create({
+          data: {
+            meeting_id: parseInt(meeting_id),
+            speaker: value.speaker,
+            username: value.username,
+            created_date: new Date(),
+            updated_date: new Date(),
+          },
+        });
+      });
+    }
+  }
 
   if (await isMeetingProcessed(meeting_id)) {
     return res.status(400).send("Meeting ID not found.");
@@ -165,6 +193,22 @@ app.post("/fetch-analysis/", async (req, res) => {
   }
 });
 
+async function isMeetingProcessedForMatch(meetingId) {
+  const existingMeeting = await prisma.match_entity.findFirst({
+    where: {
+      meeting_id: meetingId,
+    },
+  });
+
+  // If the meeting already exists, do nothing
+  if (existingMeeting) {
+    console.log(`Meeting ID ${meetingId} already processed.`);
+    return true;
+  }
+
+  return false;
+}
+
 app.get("/get-analysis/:meetingId", async (req, res) => {
   // fix cors error
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -205,7 +249,7 @@ app.get("/get-analysis/:meetingId", async (req, res) => {
   }
 });
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
 
