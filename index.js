@@ -83,6 +83,37 @@ app.post("/fetch-analysis/", async (req, res) => {
     }
   }
 
+  // Trigger the email that processing a meeting is finished
+  // Created the record in notification
+  // Define the API URL
+const apiUrl = 'http://18.117.7.255:8080/api/notifications';
+
+// Data to be sent in the request body
+const requestData = {
+    type: 0,
+    objId: meeting_id    
+};
+
+await fetch(apiUrl, {
+  method: 'POST',
+  headers: {
+      'Content-Type': 'application/json' // Specify the content type as JSON
+  },
+  body: JSON.stringify(requestData) // Convert data to JSON format
+})
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      return response.json(); // Parse the response body as JSON
+  })
+  .then(data => {
+      console.log('Response data:', data); // Process the response data
+  })
+  .catch(error => {
+      console.error('Error:', error); // Handle any errors
+  });
+
   if (await isMeetingProcessed(meeting_id)) {
     return res.status(400).send("Meeting ID not found.");
   }
