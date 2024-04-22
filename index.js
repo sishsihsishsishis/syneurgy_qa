@@ -16,7 +16,7 @@ async function isMeetingProcessed(meetingId) {
   // First, check if the meeting_id already exists
   const existingMeeting = await prisma.tbl_chat_response.findFirst({
     where: {
-      meeting_id: meetingId,
+      meeting_id: meetingId.toString(),
     },
   });
 
@@ -54,34 +54,6 @@ app.post("/fetch-analysis/", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   const meeting_id = req.body.meeting_id;
-
-  const isMeetingDoneForMatch = await isMeetingProcessedForMatch(parseInt(meeting_id));
-
-  if (!isMeetingDoneForMatch) {
-    const match_result_speaker = await fetch(
-      `http://18.144.11.243:8080/match-result/${meeting_id}`
-    ).then((res) => res.json());
-    if (match_result_speaker.data && match_result_speaker.data.match_result) {
-      const values = Object.entries(match_result_speaker.data.match_result).map(
-        ([username, speakers]) => ({
-          username,
-          speaker: speakers[0],
-        })
-      );
-    
-      values.forEach(async (value) => {
-        await prisma.match_entity.create({
-          data: {
-            meeting_id: parseInt(meeting_id),
-            speaker: value.speaker,
-            username: value.username,
-            created_date: new Date(),
-            updated_date: new Date(),
-          },
-        });
-      });
-    }
-  }
 
   // Trigger the email that processing a meeting is finished
   // Created the record in notification
