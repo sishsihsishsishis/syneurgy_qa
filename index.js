@@ -2,7 +2,7 @@ import express from "express";
 import { PrismaClient } from "@prisma/client";
 import OpenAI from "openai";
 import fetch from "node-fetch";
-
+import 'dotenv/config.js';
 const app = express();
 const port = 3000;
 const prisma = new PrismaClient();
@@ -58,7 +58,9 @@ app.post("/fetch-analysis/", async (req, res) => {
   // Trigger the email that processing a meeting is finished
   // Created the record in notification
   // Define the API URL
-const apiUrl = 'http://18.117.7.255:8080/api/notifications';
+const authServerUrl = process.env.AUTH_SERVER_URL;
+const apiUrl = `${authServerUrl}/api/notifications`;
+console.log('apiUrl~~~', apiUrl);
 
 // Data to be sent in the request body
 const requestData = {
@@ -89,9 +91,11 @@ await fetch(apiUrl, {
   if (await isMeetingProcessed(meeting_id)) {
     return res.status(400).send("Meeting ID not found.");
   }
-
+  const dataServerUrl = process.env.DATA_SERVER_URL;
+  console.log('dataServerUrl~~~', dataServerUrl);
+  
   const fetchTranscript = await fetch(
-    `http://18.144.11.243:8080/nlp/${meeting_id}`
+    `${dataServerUrl}/nlp/${meeting_id}`
   ).then((res) => res.json());
 
   if (!fetchTranscript.data || !fetchTranscript.data.length) {
